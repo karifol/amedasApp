@@ -20,7 +20,7 @@ const Header = (): JSX.Element => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 96,
+    height: 100,
     width: '100%',
     backgroundColor: 'rgb(44, 161, 185)',
     justifyContent: 'flex-end',
