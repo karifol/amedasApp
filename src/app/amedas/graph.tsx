@@ -2,13 +2,13 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 
-const map = (): JSX.Element => {
+const graph = (): JSX.Element => {
   return (
     <View style={styles.container}>
       <Header />
         <ScrollView>
           <View >
-            <Text>map</Text>
+            <Text>graph</Text>
           </View>
         </ScrollView>
       <Footer/>
@@ -26,4 +26,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default map
+export default graph
