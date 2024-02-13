@@ -1,28 +1,81 @@
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native'
-import Header from '../../components/Header'
-import Footer from '../../components/Footer'
+import { View, Text, StyleSheet, Dimensions } from 'react-native'
+import MapView, { Marker } from 'react-native-maps'
 import Slider from '@react-native-community/slider'
 import { useState, useEffect } from 'react'
-import MapView from 'react-native-maps'
+import Header from '../../components/Header'
+import Footer from '../../components/Footer'
+import MapButton from '../../components/MapButton'
+import fetchTable from '../../utils/fetchTable'
+import fetchLatestTime from '../../utils/fetchLatestTime'
+import fetchAmedas from '../../utils/fetchAmedas'
 
 const map = (): JSX.Element => {
   const [slideValue, setSlideValue] = useState(5)
-  const [time, setTime] = useState('10時20分')
-  useEffect(() => {
+  const [time, setTime] = useState({ hour: 0, minute: 0 })
+  const [element, setElement] = useState('temp')
+  const [table, setTable] = useState([])
+  const [latestTime, setLatestTime] = useState('')
+  const [ameasObj, setAmeasObj] = useState({} as any)
+
+  const initTime = (): void => {
     const date = new Date()
     const hour = date.getHours()
     const minute = date.getMinutes()
-    setTime(`${hour}時${minute}分`)
-  }, [])
+    const minuteMod = minute % 10
+    setTime({ hour, minute: minute - minuteMod })
+  }
 
-  const handleChange = (value: number): void => {
-    setSlideValue(value)
+  const updateTime = (): void => {
     const date = new Date()
-    const delta = (10 - value) * 10
+    const delta = (10 - slideValue) * 10
     date.setMinutes(date.getMinutes() - delta)
     const hour = date.getHours()
     const minute = date.getMinutes()
-    setTime(`${hour}時${minute}分`)
+    const minuteMod = minute % 10
+    setTime({ hour, minute: minute - minuteMod })
+  }
+
+  useEffect(() => {
+    if (time.hour !== 0 && time.minute !== 0) return
+    initTime()
+    fetchTable()
+      .then((data) => {
+        setTable(data as [])
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+    fetchLatestTime()
+      .then((data) => {
+        setLatestTime(data as string)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }, [])
+
+  useEffect(() => {
+    if (time.hour === 0 && time.minute === 0) return
+    fetchAmedas(latestTime)
+      .then((data) => {
+        setAmeasObj(data)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }, [latestTime])
+
+  useEffect(() => {
+    updateTime()
+  }, [slideValue])
+
+  useEffect(() => {
+    if (time.hour === 0 && time.minute === 0) return
+    console.log([time, element])
+  }, [time, element])
+
+  const handleChange = (value: number): void => {
+    setSlideValue(value)
   }
 
   return (
@@ -39,25 +92,50 @@ const map = (): JSX.Element => {
             longitudeDelta: 1
           }}
         >
+          {table.map((data: any) => {
+            if (ameasObj === null) return null
+            if (Object.keys( ameasObj.length === 0)) return null
+            return (
+              <Marker
+                coordinate={{
+                  latitude: data.latitude,
+                  longitude: data.longitude
+                }}
+                key={data.id}
+                title={ ameasObj[String(data.id)] ? ameasObj[data.id].temp[0] : '' }
+              >
+                <View style={{
+                  width: Dimensions.get('window').width / 15,
+                  height: Dimensions.get('window').width / 15,
+                  borderRadius: 50,
+                  backgroundColor: 'blue',
+                  opacity: 0.5
+                }} />
+              </Marker>
+            )
+          })}
         </MapView>
         </View>
         <View style={styles.menueContainer}>
-          <TouchableOpacity style={styles.menue}>
-            <Text style={styles.menueText}>気温</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menue}>
-            <Text style={styles.menueText}>湿度</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menue}>
-            <Text style={styles.menueText}>降水量</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menue}>
-            <Text style={styles.menueText}>風</Text>
-          </TouchableOpacity>
+          <MapButton
+            text='気温'
+            element={element}
+            setElement={setElement}
+          />
+          <MapButton
+            text='降水量'
+            element={element}
+            setElement={setElement}
+          />
+          <MapButton
+            text='風'
+            element={element}
+            setElement={setElement}
+          />
         </View>
         <View style={styles.sliderContainer}>
           <View>
-            <Text style={styles.timeText}>{time}</Text>
+            <Text style={styles.timeText}>{`${time.hour}時${time.minute}分`}</Text>
           </View>
           <Slider
             style={{ width: 300, height: 30 }}
