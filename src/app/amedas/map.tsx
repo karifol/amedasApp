@@ -9,30 +9,55 @@ import fetchTable from '../../utils/fetchTable'
 import fetchLatestTime from '../../utils/fetchLatestTime'
 import fetchAmedas from '../../utils/fetchAmedas'
 
+interface Amedas {
+  temp: string[]
+  prec: string[]
+  wind: string[]
+  id: string
+}
+
+interface Table {
+  id: string
+  latitude: number
+  longitude: number
+  kjName: string
+}
+
 const map = (): JSX.Element => {
   const [slideValue, setSlideValue] = useState(5)
-  const [time, setTime] = useState({ hour: 0, minute: 0 })
-  const [element, setElement] = useState('temp')
-  const [table, setTable] = useState([])
+  const [time, setTime] = useState({ year: 0, month: 0, day: 0, hour: 0, minute: 0 })
+  const [element, setElement] = useState('temp' as string)
+  const [table, setTable] = useState([] as Table[])
   const [latestTime, setLatestTime] = useState('')
-  const [ameasObj, setAmeasObj] = useState({} as any)
+  const [amedasObj, setAmedasObj] = useState([] as Amedas[])
 
   const initTime = (): void => {
     const date = new Date()
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    const day = date.getDate()
     const hour = date.getHours()
     const minute = date.getMinutes()
     const minuteMod = minute % 10
-    setTime({ hour, minute: minute - minuteMod })
+    setTime({ year, month, day, hour, minute: minute - minuteMod })
   }
 
   const updateTime = (): void => {
-    const date = new Date()
+    const yearLa = latestTime.slice(0, 4)
+    const monthLa = latestTime.slice(4, 6)
+    const dayLa = latestTime.slice(6, 8)
+    const hourLa = latestTime.slice(8, 10)
+    const minuteLa = latestTime.slice(10, 12)
+    const date = new Date(`${yearLa}-${monthLa}-${dayLa}T${hourLa}:${minuteLa}:00`)
     const delta = (10 - slideValue) * 10
     date.setMinutes(date.getMinutes() - delta)
+    const year = date.getFullYear()
+    const month = date.getMonth() + 1
+    const day = date.getDate()
     const hour = date.getHours()
     const minute = date.getMinutes()
     const minuteMod = minute % 10
-    setTime({ hour, minute: minute - minuteMod })
+    setTime({ year, month, day, hour, minute: minute - minuteMod })
   }
 
   useEffect(() => {
@@ -40,7 +65,7 @@ const map = (): JSX.Element => {
     initTime()
     fetchTable()
       .then((data) => {
-        setTable(data as [])
+        setTable(data as Table[])
       })
       .catch((error) => {
         console.log(error)
@@ -56,18 +81,21 @@ const map = (): JSX.Element => {
 
   useEffect(() => {
     if (time.hour === 0 && time.minute === 0) return
+    const { year, month, day, hour, minute } = time
+    const latestTime = `${year}${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}${hour.toString().padStart(2, '0')}${minute.toString().padStart(2, '0')}`
     fetchAmedas(latestTime)
       .then((data) => {
-        setAmeasObj(data)
+        setAmedasObj(data as Amedas[])
       })
       .catch((error) => {
         console.log(error)
       })
-  }, [latestTime])
+  }, [time])
 
   useEffect(() => {
     updateTime()
-  }, [slideValue])
+    console.log([time, latestTime])
+  }, [slideValue, latestTime])
 
   useEffect(() => {
     if (time.hour === 0 && time.minute === 0) return
@@ -92,9 +120,15 @@ const map = (): JSX.Element => {
             longitudeDelta: 1
           }}
         >
-          {table.map((data: any) => {
-            if (ameasObj === null) return null
-            if (Object.keys( ameasObj.length === 0)) return null
+          {table.map((data) => {
+            if (data.id === null) return null
+            if (data === null) return null
+            if (amedasObj.length === 0) return null
+            if (table.length === 0) return null
+            const amedas = amedasObj.find((amedas) => amedas.id === data.id)
+            if (amedas === undefined) return null
+            if (amedas[element as keyof Amedas] === undefined) return null
+            const value = amedas[element as keyof Amedas][0]
             return (
               <Marker
                 coordinate={{
@@ -102,7 +136,8 @@ const map = (): JSX.Element => {
                   longitude: data.longitude
                 }}
                 key={data.id}
-                title={ ameasObj[String(data.id)] ? ameasObj[data.id].temp[0] : '' }
+                // title={ amedasObj[data.id] ? amedasObj[data.id].temp[0] : '' }
+                title = {`${data.kjName} ${value}`}
               >
                 <View style={{
                   width: Dimensions.get('window').width / 15,

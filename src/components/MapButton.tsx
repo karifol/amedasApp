@@ -10,7 +10,7 @@ const MapButton = (props: Props): JSX.Element => {
   const { text, element, setElement } = props
   const elementObj: Record<string, string> = {
     気温: 'temp',
-    降水量: 'prec',
+    降水量: 'precipitation1h',
     風: 'wind'
   }
   const buttonElement = elementObj[text]
