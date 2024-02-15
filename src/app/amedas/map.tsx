@@ -31,6 +31,62 @@ const map = (): JSX.Element => {
   const [latestTime, setLatestTime] = useState('')
   const [amedasObj, setAmedasObj] = useState([] as Amedas[])
 
+  const circleColor = (value: number): string => {
+    if (element === 'temp') {
+      if (value < -5) return 'rgb(65, 37, 124)'
+      if (value < 0) return 'rgb(0, 0, 255)'
+      if (value < 5) return 'rgb(55, 115, 255)'
+      if (value < 10) return 'rgb(141, 255, 249)'
+      if (value < 15) return 'rgb(255, 255, 255)'
+      if (value < 20) return 'rgb(255, 251, 124)'
+      if (value < 25) return 'rgb(255, 255, 0)'
+      if (value < 30) return 'rgb(255, 136, 0)'
+      if (value < 35) return 'rgb(255, 4, 0)'
+      return 'rgb(255, 0, 195)'
+    }
+    if (element === 'precipitation1h') {
+      if (value === 0) return 'rgba(255, 255, 255, 0)'
+      if (value < 1) return 'rgb(255, 255, 255)'
+      if (value < 5) return 'rgb(145, 229, 255)'
+      if (value < 10) return 'rgb(41, 155, 255)'
+      if (value < 20) return 'rgb(0, 98, 255)'
+      if (value < 30) return 'rgb(255, 225, 0)'
+      if (value < 50) return 'rgb(255, 136, 0)'
+      if (value < 80) return 'rgb(255, 0, 0)'
+      return 'rgb(164, 0, 150)'
+    }
+    if (element === 'wind') {
+      if (value < 5) return 'rgb(255, 255, 255)'
+      if (value < 10) return 'rgb(0, 47, 255)'
+      if (value < 15) return 'rgb(255, 255, 0)'
+      if (value < 20) return 'rgb(255, 157, 0)'
+      if (value < 25) return 'rgb(255, 47, 0)'
+      return 'rgb(208, 0, 255)'
+    }
+    return 'rgb(255, 255, 255)'
+  }
+
+  const borderColor = (value: number): string => {
+    if (element === 'temp') {
+      return 'rgb(0, 0, 0)'
+    }
+    if (element === 'precipitation1h') {
+      if (value === 0) return 'rgba(255, 255, 255, 0)'
+      return 'rgb(0, 0, 0)'
+    }
+    if (element === 'wind') {
+      return 'rgb(0, 0, 0)'
+    }
+    return 'rgb(255, 255, 255)'
+  }
+
+  const circleLabel = (value: number): string => {
+    if (element === 'temp') return `${value}℃`
+    if (element === 'precipitation1h') return `${value}mm`
+    if (element === 'wind') return `${value}m/s`
+    return `${value}`
+  }
+
   const initTime = (): void => {
     const date = new Date()
     const year = date.getFullYear()
@@ -136,15 +192,16 @@ const map = (): JSX.Element => {
                   longitude: data.longitude
                 }}
                 key={data.id}
-                // title={ amedasObj[data.id] ? amedasObj[data.id].temp[0] : '' }
-                title = {`${data.kjName} ${value}`}
+                title = {`${data.kjName} ${circleLabel(Number(value))}`}
               >
                 <View style={{
                   width: Dimensions.get('window').width / 15,
                   height: Dimensions.get('window').width / 15,
                   borderRadius: 50,
-                  backgroundColor: 'blue',
-                  opacity: 0.5
+                  borderWidth: 1,
+                  borderColor: borderColor(Number(value)),
+                  backgroundColor: circleColor(Number(value)),
+                  opacity: 0.8
                 }} />
               </Marker>
             )
