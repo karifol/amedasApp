@@ -1,19 +1,23 @@
 import { View, Text, StyleSheet, Dimensions } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
-import Slider from '@react-native-community/slider'
 import { useState, useEffect } from 'react'
+import { AntDesign, FontAwesome6 } from '@expo/vector-icons'
 import Header from '../../components/Header'
 import Footer from '../../components/Footer'
 import MapButton from '../../components/MapButton'
 import fetchTable from '../../utils/fetchTable'
 import fetchLatestTime from '../../utils/fetchLatestTime'
 import fetchAmedas from '../../utils/fetchAmedas'
+import AmedasLegend from '../../components/TempLegend'
+import Prec1hLegend from '../../components/Prec1hLegend'
+import WindLegend from '../../components/WindLegend'
 
 interface Amedas {
   temp: string[]
   prec: string[]
   wind: string[]
   id: string
+  windDirection: string[]
 }
 
 interface Table {
@@ -24,7 +28,7 @@ interface Table {
 }
 
 const map = (): JSX.Element => {
-  const [slideValue, setSlideValue] = useState(5)
+  const [slideValue, setSlideValue] = useState(10)
   const [time, setTime] = useState({ year: 0, month: 0, day: 0, hour: 0, minute: 0 })
   const [element, setElement] = useState('temp' as string)
   const [table, setTable] = useState([] as Table[])
@@ -185,15 +189,33 @@ const map = (): JSX.Element => {
             if (amedas === undefined) return null
             if (amedas[element as keyof Amedas] === undefined) return null
             const value = amedas[element as keyof Amedas][0]
-            return (
-              <Marker
-                coordinate={{
-                  latitude: data.latitude,
-                  longitude: data.longitude
-                }}
-                key={data.id}
-                title = {`${data.kjName} ${circleLabel(Number(value))}`}
-              >
+            let marker = null
+            if (element === 'wind') {
+              const direction = amedas.windDirection[0]
+              marker = (
+                <>
+                  <FontAwesome6
+                    name="location-arrow"
+                    size={30}
+                    color='rgb(0, 0, 0)'
+                    style={{
+                      transform: [{ rotate: `${Number(direction) * 22.5 + 135}deg` }]
+                    }}
+                  />
+                  <FontAwesome6
+                    name="location-arrow"
+                    size={24}
+                    color={circleColor(Number(value))}
+                    style={{
+                      transform: [{ rotate: `${Number(direction) * 22.5 + 135}deg` }],
+                      position: 'absolute'
+                    }}
+                  />
+                </>
+
+              )
+            } else {
+              marker = (
                 <View style={{
                   width: Dimensions.get('window').width / 15,
                   height: Dimensions.get('window').width / 15,
@@ -203,10 +225,27 @@ const map = (): JSX.Element => {
                   backgroundColor: circleColor(Number(value)),
                   opacity: 0.8
                 }} />
+              )
+            }
+            return (
+              <Marker
+                coordinate={{
+                  latitude: data.latitude,
+                  longitude: data.longitude
+                }}
+                key={data.id}
+                title = {`${data.kjName} ${circleLabel(Number(value))}`}
+              >
+                {marker}
               </Marker>
             )
           })}
         </MapView>
+        </View>
+        <View style={styles.legendContainer}>
+          {element === 'temp' && <AmedasLegend />}
+          {element === 'precipitation1h' && <Prec1hLegend />}
+          {element === 'wind' && <WindLegend />}
         </View>
         <View style={styles.menueContainer}>
           <MapButton
@@ -226,20 +265,9 @@ const map = (): JSX.Element => {
           />
         </View>
         <View style={styles.sliderContainer}>
-          <View>
+            { slideValue !== 0 ? <AntDesign name="left" size={50} color="rgb(255, 255, 255)" onPress={() => { handleChange(slideValue - 1) }}/> : <View style={styles.nullArrow} />}
             <Text style={styles.timeText}>{`${time.hour}時${time.minute}分`}</Text>
-          </View>
-          <Slider
-            style={{ width: 300, height: 30 }}
-            minimumValue={0}
-            maximumValue={10}
-            step={1}
-            onValueChange={(value) => { handleChange(value) }}
-            minimumTrackTintColor="#000000"
-            maximumTrackTintColor="#e1e1e1"
-            thumbTintColor='#000000'
-            value={slideValue}
-          />
+            { slideValue !== 10 ? <AntDesign name="right" size={50} color="rgb(255, 255, 255)" onPress={() => { handleChange(slideValue + 1) }}/> : <View style={styles.nullArrow} />}
         </View>
       </View>
       <Footer/>
@@ -291,16 +319,28 @@ const styles = StyleSheet.create({
     bottom: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flexDirection: 'row'
   },
   timeText: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: 'rgb(255, 255, 255)'
+    color: 'rgb(255, 255, 255)',
+    width: 200,
+    textAlign: 'center'
   },
   mapStyle: {
     width: '100%',
     height: '100%'
+  },
+  legendContainer: {
+    position: 'absolute',
+    bottom: 50,
+    left: 10
+  },
+  nullArrow: {
+    width: 50,
+    height: 50
   }
 })
 
