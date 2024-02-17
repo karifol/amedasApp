@@ -11,6 +11,7 @@ import fetchAmedas from '../../utils/fetchAmedas'
 import AmedasLegend from '../../components/TempLegend'
 import Prec1hLegend from '../../components/Prec1hLegend'
 import WindLegend from '../../components/WindLegend'
+import LoadMap from '../../components/LoadMap'
 
 interface Amedas {
   temp: string[]
@@ -34,40 +35,41 @@ const map = (): JSX.Element => {
   const [table, setTable] = useState([] as Table[])
   const [latestTime, setLatestTime] = useState('')
   const [amedasObj, setAmedasObj] = useState([] as Amedas[])
+  const [isLoading, setIsLoading] = useState(true)
 
   const circleColor = (value: number): string => {
     if (element === 'temp') {
-      if (value < -5) return 'rgb(65, 37, 124)'
-      if (value < 0) return 'rgb(0, 0, 255)'
-      if (value < 5) return 'rgb(55, 115, 255)'
-      if (value < 10) return 'rgb(141, 255, 249)'
-      if (value < 15) return 'rgb(255, 255, 255)'
-      if (value < 20) return 'rgb(255, 251, 124)'
-      if (value < 25) return 'rgb(255, 255, 0)'
-      if (value < 30) return 'rgb(255, 136, 0)'
-      if (value < 35) return 'rgb(255, 4, 0)'
-      return 'rgb(255, 0, 195)'
+      if (value < -5) return 'rgb(0, 32, 128)'
+      if (value < 0) return 'rgb(0, 65, 255)'
+      if (value < 5) return 'rgb(0, 150, 255)'
+      if (value < 10) return 'rgb(185, 235, 255)'
+      if (value < 15) return 'rgb(255, 255, 240)'
+      if (value < 20) return 'rgb(255, 255, 150)'
+      if (value < 25) return 'rgb(255, 245, 0)'
+      if (value < 30) return 'rgb(255, 153, 0)'
+      if (value < 35) return 'rgb(255, 40, 0)'
+      return 'rgb(180, 0, 104)'
     }
     if (element === 'precipitation1h') {
       if (value === 0) return 'rgba(255, 255, 255, 0)'
-      if (value < 1) return 'rgb(255, 255, 255)'
-      if (value < 5) return 'rgb(145, 229, 255)'
-      if (value < 10) return 'rgb(41, 155, 255)'
-      if (value < 20) return 'rgb(0, 98, 255)'
-      if (value < 30) return 'rgb(255, 225, 0)'
-      if (value < 50) return 'rgb(255, 136, 0)'
-      if (value < 80) return 'rgb(255, 0, 0)'
-      return 'rgb(164, 0, 150)'
+      if (value < 1) return 'rgb(242, 242, 255)'
+      if (value < 5) return 'rgb(160, 210, 255)'
+      if (value < 10) return 'rgb(33, 140, 255)'
+      if (value < 20) return 'rgb(0, 65, 255)'
+      if (value < 30) return 'rgb(255, 245, 0)'
+      if (value < 50) return 'rgb(255, 153, 0)'
+      if (value < 80) return 'rgb(255, 40, 0)'
+      return 'rgb(180, 0, 104)'
     }
     if (element === 'wind') {
-      if (value < 5) return 'rgb(255, 255, 255)'
-      if (value < 10) return 'rgb(0, 47, 255)'
-      if (value < 15) return 'rgb(255, 255, 0)'
-      if (value < 20) return 'rgb(255, 157, 0)'
-      if (value < 25) return 'rgb(255, 47, 0)'
-      return 'rgb(208, 0, 255)'
+      if (value < 5) return 'rgb(242, 242, 255)'
+      if (value < 10) return 'rgb(0, 65, 255)'
+      if (value < 15) return 'rgb(255, 245, 0)'
+      if (value < 20) return 'rgb(255, 153, 0)'
+      if (value < 25) return 'rgb(255, 40, 0)'
+      return 'rgb(180, 0, 104)'
     }
-    return 'rgb(255, 255, 255)'
+    return 'rgb(242, 242, 255)'
   }
 
   const borderColor = (value: number): string => {
@@ -76,9 +78,6 @@ const map = (): JSX.Element => {
     }
     if (element === 'precipitation1h') {
       if (value === 0) return 'rgba(255, 255, 255, 0)'
-      return 'rgb(0, 0, 0)'
-    }
-    if (element === 'wind') {
       return 'rgb(0, 0, 0)'
     }
     return 'rgb(255, 255, 255)'
@@ -146,6 +145,7 @@ const map = (): JSX.Element => {
     fetchAmedas(latestTime)
       .then((data) => {
         setAmedasObj(data as Amedas[])
+        setIsLoading(false) // ローディング非表示 タイムスライダー変更時に実行される
       })
       .catch((error) => {
         console.log(error)
@@ -154,13 +154,8 @@ const map = (): JSX.Element => {
 
   useEffect(() => {
     updateTime()
-    console.log([time, latestTime])
+    setIsLoading(true)
   }, [slideValue, latestTime])
-
-  useEffect(() => {
-    if (time.hour === 0 && time.minute === 0) return
-    console.log([time, element])
-  }, [time, element])
 
   const handleChange = (value: number): void => {
     setSlideValue(value)
@@ -170,77 +165,78 @@ const map = (): JSX.Element => {
     <View style={styles.container}>
       <Header />
       <View style={styles.mainContainer}>
+        {isLoading && <LoadMap />}
         <View>
-        <MapView
-          style={styles.mapStyle}
-          initialRegion={{
-            latitude: 35.681236,
-            longitude: 139.767125,
-            latitudeDelta: 1,
-            longitudeDelta: 1
-          }}
-        >
-          {table.map((data) => {
-            if (data.id === null) return null
-            if (data === null) return null
-            if (amedasObj.length === 0) return null
-            if (table.length === 0) return null
-            const amedas = amedasObj.find((amedas) => amedas.id === data.id)
-            if (amedas === undefined) return null
-            if (amedas[element as keyof Amedas] === undefined) return null
-            const value = amedas[element as keyof Amedas][0]
-            let marker = null
-            if (element === 'wind') {
-              const direction = amedas.windDirection[0]
-              marker = (
-                <>
-                  <FontAwesome6
-                    name="location-arrow"
-                    size={30}
-                    color='rgb(0, 0, 0)'
-                    style={{
-                      transform: [{ rotate: `${Number(direction) * 22.5 + 135}deg` }]
-                    }}
-                  />
-                  <FontAwesome6
-                    name="location-arrow"
-                    size={24}
-                    color={circleColor(Number(value))}
-                    style={{
-                      transform: [{ rotate: `${Number(direction) * 22.5 + 135}deg` }],
-                      position: 'absolute'
-                    }}
-                  />
-                </>
+          <MapView
+            style={styles.mapStyle}
+            initialRegion={{
+              latitude: 35.681236,
+              longitude: 139.767125,
+              latitudeDelta: 1,
+              longitudeDelta: 1
+            }}
+          >
+            {table.map((data) => {
+              if (data.id === null) return null
+              if (data === null) return null
+              if (amedasObj.length === 0) return null
+              if (table.length === 0) return null
+              const amedas = amedasObj.find((amedas) => amedas.id === data.id)
+              if (amedas === undefined) return null
+              if (amedas[element as keyof Amedas] === undefined) return null
+              const value = amedas[element as keyof Amedas][0]
+              let marker = null
+              if (element === 'wind') {
+                const direction = amedas.windDirection[0]
+                marker = (
+                  <>
+                    <FontAwesome6
+                      name="location-arrow"
+                      size={30}
+                      color='rgb(0, 0, 0)'
+                      style={{
+                        transform: [{ rotate: `${Number(direction) * 22.5 + 135}deg` }]
+                      }}
+                    />
+                    <FontAwesome6
+                      name="location-arrow"
+                      size={24}
+                      color={circleColor(Number(value))}
+                      style={{
+                        transform: [{ rotate: `${Number(direction) * 22.5 + 135}deg` }],
+                        position: 'absolute'
+                      }}
+                    />
+                  </>
 
+                )
+              } else {
+                marker = (
+                  <View style={{
+                    width: Dimensions.get('window').width / 15,
+                    height: Dimensions.get('window').width / 15,
+                    borderRadius: 50,
+                    borderWidth: 1,
+                    borderColor: borderColor(Number(value)),
+                    backgroundColor: circleColor(Number(value)),
+                    opacity: 0.8
+                  }} />
+                )
+              }
+              return (
+                <Marker
+                  coordinate={{
+                    latitude: data.latitude,
+                    longitude: data.longitude
+                  }}
+                  key={data.id}
+                  title = {`${data.kjName} ${circleLabel(Number(value))}`}
+                >
+                  {marker}
+                </Marker>
               )
-            } else {
-              marker = (
-                <View style={{
-                  width: Dimensions.get('window').width / 15,
-                  height: Dimensions.get('window').width / 15,
-                  borderRadius: 50,
-                  borderWidth: 1,
-                  borderColor: borderColor(Number(value)),
-                  backgroundColor: circleColor(Number(value)),
-                  opacity: 0.8
-                }} />
-              )
-            }
-            return (
-              <Marker
-                coordinate={{
-                  latitude: data.latitude,
-                  longitude: data.longitude
-                }}
-                key={data.id}
-                title = {`${data.kjName} ${circleLabel(Number(value))}`}
-              >
-                {marker}
-              </Marker>
-            )
-          })}
-        </MapView>
+            })}
+          </MapView>
         </View>
         <View style={styles.legendContainer}>
           {element === 'temp' && <AmedasLegend />}

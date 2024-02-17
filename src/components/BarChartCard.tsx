@@ -1,15 +1,14 @@
 import { View, Text, Dimensions, StyleSheet } from 'react-native'
-import { LineChart } from 'react-native-chart-kit'
+import { BarChart } from 'react-native-chart-kit'
 
 interface Props {
   title: string
-  color: string
   timeArr: string[]
   valueArr: number[]
 }
 
-const LineChartCard = (props: Props): JSX.Element => {
-  const { title, color, timeArr, valueArr } = props
+const BarChartCard = (props: Props): JSX.Element => {
+  const { title, timeArr, valueArr } = props
   if (valueArr.length !== timeArr.length) {
     return (
       <View style={styles.container}>
@@ -28,15 +27,25 @@ const LineChartCard = (props: Props): JSX.Element => {
         <Text style={styles.text}>{title}</Text>
       </View>
       <View style={styles.chartContainer}>
-        <LineChart
+        <BarChart
           data={{
-            labels: timeArr,
+            labels: timeArr.map((time) => {
+              const index = timeArr.indexOf(time)
+              if (index % 3 === 0) {
+                const label = time.slice(8, 10) + ':' + time.slice(10, 12)
+                return label
+              } else {
+                return ''
+              }
+            }),
             datasets: [
               {
                 data: valueArr
               }
             ]
           }}
+          yAxisSuffix=''
+          yAxisLabel=''
           width={Dimensions.get('window').width * 0.9 - 20}
           height={160}
           yAxisInterval={1}
@@ -44,30 +53,16 @@ const LineChartCard = (props: Props): JSX.Element => {
             backgroundGradientFrom: 'white',
             backgroundGradientTo: '#ffffff',
             decimalPlaces: 2,
-            color: (opacity = 1) => color,
+            color: (opacity = 1) => '#005eff',
             labelColor: (opacity = 1) => '#000000',
-            style: {
-              borderRadius: 16
-            },
-            propsForDots: {
-              r: '3',
-              strokeWidth: '2',
-              stroke: '#ffffff'
+            barPercentage: 0.1,
+            propsForBackgroundLines: {
+              stroke: '#aeaeae',
+              strokeWidth: 1
             }
           }}
-          formatYLabel={(value) => {
-            return value
-          }}
-          formatXLabel={(value) => {
-            const index = timeArr.indexOf(value)
-            if (index % 3 === 0) {
-              // 20240217122000
-              const label = value.slice(8, 10) + ':' + value.slice(10, 12)
-              return label
-            } else {
-              return ''
-            }
-          }}
+          withInnerLines={true}
+          fromZero={true}
         />
       </View>
     </View>
@@ -104,4 +99,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default LineChartCard
+export default BarChartCard

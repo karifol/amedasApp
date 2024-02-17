@@ -10,6 +10,7 @@ const fetchData = async (url: string): Promise<any> => {
 
 const fetchTable = async (): Promise<any> => {
   const url = 'https://www.jma.go.jp/bosai/amedas/const/amedastable.json'
+  console.log('fetchTable')
   const response = await fetchData(url)
   const arr = []
   for (const key in response) {

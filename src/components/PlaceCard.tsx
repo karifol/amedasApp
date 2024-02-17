@@ -1,9 +1,17 @@
 import { View, Text, StyleSheet } from 'react-native'
 
-const PlaceCard = (): JSX.Element => {
+interface Props {
+  place: {
+    id: number
+    name: string
+  }
+}
+
+const PlaceCard = (props: Props): JSX.Element => {
+  const { place } = props
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>東京</Text>
+      <Text style={styles.text}>{place.name}</Text>
     </View>
   )
 }
