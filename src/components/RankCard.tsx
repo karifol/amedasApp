@@ -3,7 +3,7 @@ import { Table, Row, Rows } from 'react-native-table-component'
 
 interface Props {
   title: string
-  color?: string
+  color: string
   rankObj: Record<string, {
     rank: string
     pref: string

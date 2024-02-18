@@ -2,7 +2,9 @@ import { DOMParser } from 'react-native-html-parser'
 
 const fetchData = async (date: string): Promise<string> => {
   const url = `https://www.data.jma.go.jp/stats/data/mdrr/rank_daily/data${date}.html`
-  const res = await fetch(url)
+  const res = await fetch(url, {
+    cache: 'no-cache'
+  })
   const data = await res.text()
   return data
 }
