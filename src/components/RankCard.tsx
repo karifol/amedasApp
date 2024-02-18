@@ -3,23 +3,29 @@ import { Table, Row, Rows } from 'react-native-table-component'
 
 interface Props {
   title: string
+  color?: string
   rankObj: Record<string, {
     rank: string
     pref: string
     amedas: string
     value: string
     time: string
+    title: string
   }>
 }
 
 const RankCard = (props: Props): JSX.Element => {
-  const { title, rankObj } = props
+  const { title, rankObj, color } = props
 
   if (Object.keys(rankObj).length === 1) {
-    console.log(rankObj)
     return (
       <View style={styles.NoItemContainer}>
-        <View style={styles.title}>
+        <View style={
+          {
+            ...styles.title,
+            backgroundColor: color
+          }
+        }>
           <Text style={styles.titleText}>{title}</Text>
         </View>
         <View style={styles.NoItemTextContainer}>
@@ -30,8 +36,13 @@ const RankCard = (props: Props): JSX.Element => {
   }
   return (
     <View style={styles.container}>
-      <View style={styles.title}>
-        <Text style={styles.titleText}>{title}</Text>
+      <View style={
+        {
+          ...styles.title,
+          backgroundColor: color
+        }
+      }>
+        <Text style={styles.titleText}>{rankObj['2'].title}</Text>
       </View>
       <View style={styles.titleContainer}>
         <Table borderStyle={{ borderWidth: 1, borderColor: '#000000' }}>
@@ -75,10 +86,12 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e8e8e8'
+    borderBottomColor: '#e8e8e8',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10
   },
   titleText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'left',
     marginLeft: 10

@@ -1,23 +1,23 @@
 import { DOMParser } from 'react-native-html-parser'
 
-const fetchData = async (): Promise<string> => {
-  const fileName = getFileName()
-  const url = `https://www.data.jma.go.jp/stats/data/mdrr/rank_daily/${fileName}`
+const fetchData = async (date: string): Promise<string> => {
+  // const fileName = getFileName()
+  const url = `https://www.data.jma.go.jp/stats/data/mdrr/rank_daily/data${date}.html`
   const res = await fetch(url)
   const data = await res.text()
   return data
 }
 
-const getFileName = (): string => {
-  // 2月17日のデータなら「0217」
-  const today = new Date()
-  const month = today.getMonth() + 1
-  const date = today.getDate()
-  const dateZfill = ('0' + date).slice(-2)
-  const monthZfill = ('0' + month).slice(-2)
-  const fileName = `data${monthZfill}${dateZfill}.html`
-  return fileName
-}
+// const getFileName = (): string => {
+//   // 2月17日のデータなら「0217」
+//   const today = new Date()
+//   const month = today.getMonth() + 1
+//   const date = today.getDate()
+//   const dateZfill = ('0' + date).slice(-2)
+//   const monthZfill = ('0' + month).slice(-2)
+//   const fileName = `data${monthZfill}${dateZfill}.html`
+//   return fileName
+// }
 
 const parseHtml = (htmlString: string): any => {
   const doc = new DOMParser().parseFromString(htmlString, 'text/html')
@@ -42,23 +42,25 @@ const parseHtml = (htmlString: string): any => {
   for (let i = 0; i < tableArray.length; i++) {
     const table = tableArray[i]
     const title = table.getElementsByTagName('caption')[0].textContent
-    tableObj[title] = {}
+    const key = title.split('　')[0]
+    tableObj[key] = {}
     const trArray = table.getElementsByTagName('tr')
     for (let i = 0; i < trArray.length; i++) {
       const tdArray = trArray[i].getElementsByTagName('td')
       if (tdArray.length === 0) continue
       if (tdArray.length === 1) {
-        tableObj[title][i] = {
+        tableObj[key][i] = {
           rank: tdArray[0].textContent
         }
         continue
       }
-      tableObj[title][i] = {
+      tableObj[key][i] = {
         rank: tdArray[0].textContent,
         pref: tdArray[1].textContent.split(' ')[0],
         amedas: tdArray[3].textContent.split('（')[0],
         value: tdArray[4].textContent,
-        time: tdArray[5].textContent
+        time: tdArray[5].textContent,
+        title
       }
     }
   }
@@ -70,10 +72,11 @@ const parseHtml = (htmlString: string): any => {
   return rankObj
 }
 
-const fetchRanking = async (): Promise<any> => {
-  console.log('fetchRanking')
-  const data = await fetchData()
+const fetchRanking = async (date: string): Promise<any> => {
+  console.log('start fetchRanking')
+  const data = await fetchData(date)
   const rankObj = parseHtml(data)
+  console.log('finish fetchRanking')
   return rankObj
 }
 
