@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     color: 'rgb(161, 161, 161)'
   },
   iconSelected: {
-    color: 'rgb(44, 161, 185)'
+    color: '#72C7EB'
   }
 })
 
