@@ -11,13 +11,13 @@ interface Props {
     value: string
     time: string
     title: string
+    nodata?: boolean
   }>
 }
 
 const RankCard = (props: Props): JSX.Element => {
   const { title, rankObj, color } = props
-
-  if (Object.keys(rankObj).length === 1) {
+  if (rankObj['2'].nodata === true) {
     return (
       <View style={styles.NoItemContainer}>
         <View style={

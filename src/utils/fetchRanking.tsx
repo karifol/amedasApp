@@ -1,23 +1,11 @@
 import { DOMParser } from 'react-native-html-parser'
 
 const fetchData = async (date: string): Promise<string> => {
-  // const fileName = getFileName()
   const url = `https://www.data.jma.go.jp/stats/data/mdrr/rank_daily/data${date}.html`
   const res = await fetch(url)
   const data = await res.text()
   return data
 }
-
-// const getFileName = (): string => {
-//   // 2月17日のデータなら「0217」
-//   const today = new Date()
-//   const month = today.getMonth() + 1
-//   const date = today.getDate()
-//   const dateZfill = ('0' + date).slice(-2)
-//   const monthZfill = ('0' + month).slice(-2)
-//   const fileName = `data${monthZfill}${dateZfill}.html`
-//   return fileName
-// }
 
 const parseHtml = (htmlString: string): any => {
   const doc = new DOMParser().parseFromString(htmlString, 'text/html')
@@ -42,15 +30,17 @@ const parseHtml = (htmlString: string): any => {
   for (let i = 0; i < tableArray.length; i++) {
     const table = tableArray[i]
     const title = table.getElementsByTagName('caption')[0].textContent
-    const key = title.split('　')[0]
+    const key = title.split('　')[0] // 「日最深積雪（5cm以上のみ） 20時00分現在」のような文字列から「日最深積雪（5cm以上のみ）」の部分を取得
     tableObj[key] = {}
     const trArray = table.getElementsByTagName('tr')
     for (let i = 0; i < trArray.length; i++) {
       const tdArray = trArray[i].getElementsByTagName('td')
       if (tdArray.length === 0) continue
       if (tdArray.length === 1) {
+        // 該当する観測値がない場合
         tableObj[key][i] = {
-          rank: tdArray[0].textContent
+          rank: tdArray[0].textContent,
+          nodata: true
         }
         continue
       }
