@@ -12,6 +12,7 @@ import AmedasLegend from '../../components/TempLegend'
 import Prec1hLegend from '../../components/Prec1hLegend'
 import WindLegend from '../../components/WindLegend'
 import LoadMap from '../../components/LoadMap'
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency'
 
 interface Amedas {
   temp: string[]
@@ -120,6 +121,16 @@ const map = (): JSX.Element => {
   }
 
   useEffect(() => {
+    requestTrackingPermissionsAsync()
+      .then((status) => {
+        console.log('tracking status:', status)
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+  })
+
+  useEffect(() => {
     if (time.hour !== 0 && time.minute !== 0) return
     initTime()
     fetchTable()
@@ -140,6 +151,7 @@ const map = (): JSX.Element => {
 
   useEffect(() => {
     if (time.hour === 0 && time.minute === 0) return
+    if (isNaN(time.year) || isNaN(time.month) || isNaN(time.day) || isNaN(time.hour) || isNaN(time.minute)) return
     const { year, month, day, hour, minute } = time
     const latestTime = `${year}${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}${hour.toString().padStart(2, '0')}${minute.toString().padStart(2, '0')}`
     fetchAmedas(latestTime)
@@ -172,8 +184,8 @@ const map = (): JSX.Element => {
             initialRegion={{
               latitude: 35.681236,
               longitude: 139.767125,
-              latitudeDelta: 1,
-              longitudeDelta: 1
+              latitudeDelta: 10,
+              longitudeDelta: 5
             }}
           >
             {table.map((data) => {
@@ -223,6 +235,7 @@ const map = (): JSX.Element => {
                   }} />
                 )
               }
+              if ((Number(value) === 0) && (element === 'precipitation1h')) return null
               return (
                 <Marker
                   coordinate={{

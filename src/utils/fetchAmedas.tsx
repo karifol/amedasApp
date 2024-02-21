@@ -5,9 +5,8 @@ const fetchDate = async (url: string): Promise<any> => {
 }
 
 const fetchAmedas = async (time: string): Promise<any> => {
-  const url = `https://www.jma.go.jp/bosai/amedas/data/map/${time}00.json`
   console.log('fetchAmedas')
-  console.log(url)
+  const url = `https://www.jma.go.jp/bosai/amedas/data/map/${time}00.json`
   const response = await fetchDate(url)
   const arr = []
   for (const key in response) {

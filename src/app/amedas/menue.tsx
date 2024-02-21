@@ -31,6 +31,21 @@ const menue = (): JSX.Element => {
             render='/amedas/graph'
             icon={<AntDesign name="linechart" size={20} />}
           />
+          {/* <MenueItem
+            text='極値更新状況'
+            render='/amedas/extreme'
+            icon={<AntDesign name="linechart" size={20} />}
+          />
+          <MenueItem
+            text='表'
+            render='/amedas/extreme'
+            icon={<AntDesign name="linechart" size={20} />}
+          />
+          <MenueItem
+            text='過去データ'
+            render='/amedas/extreme'
+            icon={<AntDesign name="linechart" size={20} />}
+          /> */}
         </View>
         <View>
           <Text
